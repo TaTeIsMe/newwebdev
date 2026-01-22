@@ -1,0 +1,1 @@
+export const baseUrl = "/tree_app/api/"

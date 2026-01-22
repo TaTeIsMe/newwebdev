@@ -1,0 +1,23 @@
+.tree-form input,
+.tree-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.tree-form textarea {
+    width: 100%;
+    font-size: 16px;
+    font-family: inherit;
+    overflow: hidden;
+    resize:none;
+    min-height: 60px;
+}
+
+.submit-btn {
+    padding: 10px;
+    background: green;
+    color: white;
+    border: none;
+    cursor: pointer;
+}

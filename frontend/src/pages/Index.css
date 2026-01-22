@@ -1,0 +1,32 @@
+.tree-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px;;
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    gap: 15px;
+    margin: 20px 0 0 20px;
+}
+
+.pagination-container button {
+    padding: 8px 12px;
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+.pagination-container button:disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
+}
+
+.pagination-page {
+    font-weight: bold;
+    font-size: 1.1rem;
+}

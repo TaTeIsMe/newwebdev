@@ -1,0 +1,9 @@
+.user-update-container{
+  max-width: 350px;
+  padding: 25px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.account-comments-container{
+    margin-left: 25px;
+}

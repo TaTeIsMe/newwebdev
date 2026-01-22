@@ -1,0 +1,85 @@
+.tree-img{
+    float: left;
+    max-width: 320px;
+    margin: 10px 25px 20px 0;
+}
+
+.tree-page-container{
+    max-width: 1000px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+}
+
+.tree-desc{
+    margin-bottom: 1.2em;
+    white-space: pre-wrap;
+    text-align: justify;
+    font-family: "Georgia", "Times New Roman", serif;
+    line-height: 1.7;
+    font-size: 18px;
+    color: #333;
+}
+
+.tree-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: "Inter", sans-serif;
+    font-size: 38px;
+    font-weight: 700;
+    color: #1d261a;
+    text-align: left;
+    margin-bottom: 15px;
+}
+
+.comment-form {
+    width: auto;
+    max-width: 700px;
+    margin-bottom: 20px;
+}
+
+.comment-form textarea {
+    width: 100%;
+    font-size: 16px;
+    font-family: inherit;
+    overflow: hidden;
+    resize:none;
+    border: 1px solid #aaa;
+    min-height: 60px;
+}
+
+.comment-form button {
+    background-color: #395d36;
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 6px 9px;
+    font-size: 16px;
+}
+
+.comment-form button:hover {
+    background-color: #2a492a;
+}
+
+.delete-button {
+    margin-left: 10px;
+    background-color: #d9534f;
+    border: none;
+    color: white;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.delete-button:hover {
+    background-color: #c9302c;
+    transform: scale(1.05);
+}
+
+.delete-button:active {
+    background-color: #a8231f;
+    transform: scale(0.97);
+}
