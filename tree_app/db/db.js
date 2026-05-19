@@ -24,8 +24,12 @@ comments = [
     }
 ]
 
-const sqlite3 = require('sqlite3');
-const db = new sqlite3.Database('./data.db');
+const { createClient } = require('@libsql/client');
+
+const db = createClient({
+  url: process.env.TURSO_DATABASE_URL,
+  authToken: process.env.TURSO_AUTH_TOKEN,
+});
 
 db.serialize(() => {
   // USERS
