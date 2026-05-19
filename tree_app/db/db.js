@@ -9,13 +9,14 @@ if (!DATABASE_URL || !AUTH_TOKEN) {
   throw new Error("Missing TURSO_DATABASE_URL or TURSO_AUTH_TOKEN");
 }
 
-// FIX: Append the token to the URL as a query parameter
+// Append the token to the URL as a query parameter
 const connectionString = `${DATABASE_URL}?authToken=${AUTH_TOKEN}`;
 const db = new sqlite3.Database(connectionString);
 
 console.log("Connected to Turso database using @libsql/sqlite3");
 
-try {
+// FIX 1: Wrap everything in db.serialize() to guarantee commands run in order
+db.serialize(() => {
   // Enable foreign keys
   db.exec(`PRAGMA foreign_keys = ON`);
 
@@ -56,47 +57,45 @@ try {
     )
   `);
 
-  console.log("Database tables initialized");
+  console.log("Database schema checks queued...");
 
-  // Check if users table is empty
-  const row = db.prepare(
-    "SELECT COUNT(*) as count FROM users"
-  ).get();
+  // FIX 2: Use standard async db.get() with a callback instead of db.prepare().get()
+  db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
+    // FIX 3: Catch async execution errors inside the callback, not in a try/catch
+    if (err) {
+      console.error("Database error during count check:", err);
+      return;
+    }
 
-  if (row.count === 0) {
-    console.log("Database empty – seeding sample data...");
+    if (row && row.count === 0) {
+      console.log("Database empty – seeding sample data...");
 
-    // Insert sample user
-    db.prepare(`
-      INSERT INTO users (role, nickname, login, password)
-      VALUES (?, ?, ?, ?)
-    `).run(0, "exampleUser", "epicgamer", "123456");
+      // FIX 4: Use db.run() with a parameters array
+      db.run(`
+        INSERT INTO users (role, nickname, login, password)
+        VALUES (?, ?, ?, ?)
+      `, [1, "exampleUser", "epicgamer", "123456"], (err) => {
+        if (err) console.error("Error seeding user:", err);
+      });
 
-    // Insert sample tree
-    db.prepare(`
-      INSERT INTO trees (name, description, picturepath)
-      VALUES (?, ?, ?)
-    `).run(
-      "oak",
-      "this is one cool tree ain't it partner",
-      "image.png"
-    );
+      db.run(`
+        INSERT INTO trees (name, description, picturepath)
+        VALUES (?, ?, ?)
+      `, ["oak", "this is one cool tree ain't it partner", "image.png"], (err) => {
+        if (err) console.error("Error seeding tree:", err);
+      });
 
-    // Insert sample comment
-    db.prepare(`
-      INSERT INTO comments (content, userid, treeid)
-      VALUES (?, ?, ?)
-    `).run(
-      "loremipsum",
-      1,
-      1
-    );
-
-    console.log("Sample data seeded successfully");
-  }
-
-} catch (err) {
-  console.error("Database error:", err);
-}
+      db.run(`
+        INSERT INTO comments (content, userid, treeid)
+        VALUES (?, ?, ?)
+      `, ["loremipsum", 1, 1], (err) => {
+        if (err) console.error("Error seeding comment:", err);
+        else console.log("Sample data seeded successfully");
+      });
+    } else {
+      console.log("Database already initialized with data. Skipping seed.");
+    }
+  });
+});
 
 module.exports = db;
