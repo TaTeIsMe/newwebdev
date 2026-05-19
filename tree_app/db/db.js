@@ -1,99 +1,82 @@
-trees = [
-    {
-        'id':0,
-        'name':'oak',
-        'description':'this is one cool tree ain\'t it partn\'',
-        'picturepath':'image.png'
-    }
-]
-users = [
-    {
-        'id':0,
-        'role': 0,
-        'nickname':'exampleUser',
-        'login':'epicgamer',
-        'password':'123456'
-    }
-]
-comments = [
-    {
-        'id':0,
-        'content':'loremipsum',
-        'userid':0,
-        'treeid':0
-    }
-]
+const sqlite3 = require('@libsql/sqlite3');
 
-const { createClient } = require('@libsql/client');
+// Use Turso database URL and auth token
+const DATABASE_URL = process.env.TURSO_DATABASE_URL;
+const AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN;
 
-const db = createClient({
-  url: process.env.TURSO_DATABASE_URL,
-  authToken: process.env.TURSO_AUTH_TOKEN,
-});
+// Create database connection - works just like sqlite3
+const db = new sqlite3.Database(DATABASE_URL, { authToken: AUTH_TOKEN });
 
-console.log('Connected to Turso database');
+console.log('Connected to Turso database using @libsql/sqlite3');
 
-// Initialize tables (Turso requires executing statements individually)
-async function initializeDatabase() {
-  const tables = [
-    `CREATE TABLE IF NOT EXISTS users (
+// Initialize tables using sqlite3's serialize() method
+db.serialize(() => {
+  // Users table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       role INTEGER NOT NULL DEFAULT 0,
       nickname TEXT NOT NULL,
       login TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL
-    )`,
-    
-    `CREATE TABLE IF NOT EXISTS trees (
+    )
+  `);
+
+  // Trees table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS trees (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       description TEXT,
       picturepath TEXT
-    )`,
-    
-    `CREATE TABLE IF NOT EXISTS comments (
+    )
+  `);
+
+  // Comments table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS comments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       content TEXT NOT NULL,
       userid INTEGER NOT NULL,
       treeid INTEGER,
       FOREIGN KEY (userid) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
       FOREIGN KEY (treeid) REFERENCES trees(id) ON DELETE CASCADE ON UPDATE CASCADE
-    )`
-  ];
+    )
+  `);
 
-  for (const tableSql of tables) {
-    await db.execute(tableSql);
-  }
-  
   console.log('Database tables initialized');
-}
 
-initializeDatabase().catch(console.error);
+  // Seed database if empty
+  db.get("SELECT COUNT(*) as count FROM users", (err, result) => {
+    if (err) {
+      console.error('Error checking users:', err);
+      return;
+    }
+
+    if (result.count === 0) {
+      console.log('Database empty – seeding sample data...');
+      
+      // Insert sample user
+      db.run(
+        "INSERT INTO users (role, nickname, login, password) VALUES (?, ?, ?, ?)",
+        [0, 'exampleUser', 'epicgamer', '123456']
+      );
+      
+      // Insert sample tree
+      db.run(
+        "INSERT INTO trees (name, description, picturepath) VALUES (?, ?, ?)",
+        ['oak', 'this is one cool tree ain\'t it partn\'', 'image.png']
+      );
+      
+      // Insert sample comment (uses the IDs from above)
+      db.run(
+        "INSERT INTO comments (content, userid, treeid) VALUES (?, ?, ?)",
+        ['loremipsum', 1, 1]
+      );
+      
+      console.log('Sample data seeded successfully');
+    }
+  });
+});
 
 module.exports = db;
-
-async function seedDatabase() {
-  // Check if users exist
-  const users = await db.execute("SELECT * FROM users");
-  if (users.rows.length === 0) {
-    // Insert sample data
-    await db.execute({
-      sql: "INSERT INTO users (role, nickname, login, password) VALUES (?, ?, ?, ?)",
-      args: [0, 'exampleUser', 'epicgamer', '123']
-    });
-    
-    await db.execute({
-      sql: "INSERT INTO trees (name, description, picturepath) VALUES (?, ?, ?)",
-      args: ['oak', 'this is one cool tree ain\'t it partn\'', 'image.png']
-    });
-    
-    await db.execute({
-      sql: "INSERT INTO comments (content, userid, treeid) VALUES (?, ?, ?)",
-      args: ['loremipsum', 0, 0]
-    });
-    
-    console.log('Sample data seeded');
-  }
-}
-
-seedDatabase().catch(console.error);
