@@ -79,7 +79,6 @@ treeRouter.post('/', upload.single('image'), (req, res) => {
   }
 
   const parsed = result.data;
-  // ✅ Cloudinary provides the URL in req.file.path (not req.file.location)
   const tree = { ...parsed, picture_path: req.file.path };
 
   createTree(tree, (err, newTree) => {
