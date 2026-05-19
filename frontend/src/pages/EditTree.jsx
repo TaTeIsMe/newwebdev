@@ -32,7 +32,7 @@ function EditTree() {
                     description: data.description || ""
                 });
                 if (data.picture_path) {
-                    setPreviewUrl(baseUrl + data.picture_path);
+                    setPreviewUrl(tree.picture_path);
                 }
             })
             .catch(err => {
