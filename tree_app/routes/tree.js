@@ -51,8 +51,9 @@ treeRouter.get('/:id', (req, res) => {
 // DELETE tree
 treeRouter.delete('/:id', (req, res) => {
   const id = parseInt(req.params.id);
-  if (req.session.user.role != 0)
-    return res.status(401).send({ status: 'only admins can change trees' });
+if (!req.session.user || req.session.user.role != 0) {
+  return res.status(401).send({ status: 'only admins can change trees' });
+}
 
   deleteTree(id, (err, deletedTree) => {
     if (err) return res.status(500).send({ status: err.message });
