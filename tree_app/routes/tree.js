@@ -68,76 +68,50 @@ treeRouter.delete('/:id', (req, res) => {
   });
 });
 
-// CREATE tree (with image upload)
-treeRouter.post('/', upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(500).send({
-      properties: { image: { errors: ['Please attach a tree image'] } },
-    });
-  }
 
-  if (!req.session.user || req.session.user.role != 0) {
-    // No local file to clean up – just return error
-    return res.status(401).send({ status: 'Only administrators can add trees' });
-  }
+treeRouter.post('/', upload.single('image'), (req, res) => {
+  if (!req.file) return res.status(500).send({ properties: { image: { errors: ['Please attach a tree image'] } } });
+  if (!req.session.user || req.session.user.role != 0) return res.status(401).send({ status: 'Only administrators can add trees' });
 
   const result = TreeSchema.safeParse(req.body);
-  if (!result.success) {
-    return res.status(400).json(z.treeifyError(result.error));
-  }
+  if (!result.success) return res.status(400).json(z.treeifyError(result.error));
 
   const parsed = result.data;
-  // ✅ Store the cloud URL (multer-s3 provides req.file.location)
-  const tree = { ...parsed, picture_path: req.file.location };
+  const publicUrl = `${process.env.BUCKET_PUBLIC_URL}/${req.file.key}`;
+  const tree = { ...parsed, picture_path: publicUrl };
 
   createTree(tree, (err, newTree) => {
-    if (err) {
-      // No local file to delete – just report error
-      return res.status(500).send({ status: err.message });
-    }
+    if (err) return res.status(500).send({ status: err.message });
     res.json(newTree);
   });
 });
 
-// UPDATE tree (with optional new image)
 treeRouter.put('/:id', upload.single('image'), (req, res) => {
   const id = parseInt(req.params.id);
-
-  if (!req.session.user || req.session.user.role != 0) {
-    return res.status(401).send({ status: 'only admins can change trees' });
-  }
+  if (!req.session.user || req.session.user.role != 0) return res.status(401).send({ status: 'only admins can change trees' });
 
   getTree(id, (err, oldTree) => {
-    if (err) {
-      return res.status(500).send({ status: err.message });
-    }
-    if (!oldTree) {
-      return res.status(404).send({ status: 'Tree not found' });
-    }
+    if (err) return res.status(500).send({ status: err.message });
+    if (!oldTree) return res.status(404).send({ status: 'Tree not found' });
 
-    // If a new file was uploaded, use its cloud URL; otherwise keep the old one
-    const newImageUrl = req.file ? req.file.location : oldTree.picture_path;
+    let newImageUrl = oldTree.picture_path;
+    if (req.file) {
+      newImageUrl = `${process.env.BUCKET_PUBLIC_URL}/${req.file.key}`;
+    }
 
     const result = TreeSchema.safeParse(req.body);
-    if (!result.success) {
-      return res.status(400).json(z.treeifyError(result.error));
-    }
+    if (!result.success) return res.status(400).json(z.treeifyError(result.error));
 
     const parsed = result.data;
     const sentTree = { ...parsed, picture_path: newImageUrl };
     const newTree = Object.assign({}, oldTree, sentTree);
 
     updateTree(id, newTree, (err) => {
-      if (err) {
-        return res.status(500).send({ status: err.message });
-      }
-      // No local file to delete – old image remains in cloud.
-      // (Optional: delete old image from S3 here if you want to save space)
+      if (err) return res.status(500).send({ status: err.message });
       res.json(newTree);
     });
   });
 });
-
 // Comments routes (unchanged)
 treeRouter.get('/:treeid/comments', (req, res) => {
   const count = req.query.count ? parseInt(req.query.count) : 5;
