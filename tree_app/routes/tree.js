@@ -6,7 +6,36 @@ const { createTree, deleteTree, getTrees, getTree, updateTree } = require('../db
 const { createComment, getComments } = require('../db/comment')
 const { TreeSchema, CommentSchema } = require('../schemas/schemas')
 const treeRouter = express.Router()
-const upload = multer({ dest: 'uploads/' })
+
+
+import multer from 'multer';
+import multerS3 from 'multer-s3';
+import { S3Client } from '@aws-sdk/client-s3';
+
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+  // For Railway Buckets, also add:
+  endpoint: process.env.BUCKET_ENDPOINT_URL,
+});
+
+const upload = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: process.env.BUCKET_NAME,
+    key: function (req, file, cb) {
+      cb(null, `trees/${Date.now()}_${file.originalname}`);
+    },
+    metadata: function (req, file, cb) {
+      cb(null, { fieldName: file.fieldname });
+    },
+    // Make the file public (or omit if you'll generate signed URLs)
+    acl: 'public-read',
+  }),
+});
 
 treeRouter.get('/', (req, res) => {
     const count = req.query.count ? parseInt(req.query.count) : 5;
