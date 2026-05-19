@@ -13,6 +13,9 @@ if (!AUTH_TOKEN) {
   throw new Error('Missing TURSO_AUTH_TOKEN');
 }
 
+print(AUTH_TOKEN);
+print(DATABASE_URL);
+
 // Create Turso database connection
 const db = new sqlite3.Database(DATABASE_URL, {
   authToken: AUTH_TOKEN,
