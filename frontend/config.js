@@ -1,1 +1,1 @@
-export const baseUrl = "/tree_app/api/"
+export const baseUrl = "https://newwebdev-production.up.railway.app/tree_app/api/"
