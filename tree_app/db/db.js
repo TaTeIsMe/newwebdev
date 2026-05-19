@@ -12,7 +12,7 @@ users = [
         'role': 0,
         'nickname':'exampleUser',
         'login':'epicgamer',
-        'password':'123'
+        'password':'123456'
     }
 ]
 comments = [
@@ -31,41 +31,69 @@ const db = createClient({
   authToken: process.env.TURSO_AUTH_TOKEN,
 });
 
-db.serialize(() => {
-  // USERS
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users (
+console.log('Connected to Turso database');
+
+// Initialize tables (Turso requires executing statements individually)
+async function initializeDatabase() {
+  const tables = [
+    `CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       role INTEGER NOT NULL DEFAULT 0,
       nickname TEXT NOT NULL,
       login TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL
-    )
-  `);
-
-  // TREES
-  db.run(`
-    CREATE TABLE IF NOT EXISTS trees (
+    )`,
+    
+    `CREATE TABLE IF NOT EXISTS trees (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       description TEXT,
       picturepath TEXT
-    )
-  `);
-
-  // COMMENTS
-  db.run(`
-    CREATE TABLE IF NOT EXISTS comments (
+    )`,
+    
+    `CREATE TABLE IF NOT EXISTS comments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       content TEXT NOT NULL,
       userid INTEGER NOT NULL,
       treeid INTEGER,
-      FOREIGN KEY (userid) REFERENCES users(id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-      FOREIGN KEY (treeid) REFERENCES trees(id)
-        ON DELETE CASCADE ON UPDATE CASCADE
-    )
-  `);
-});
+      FOREIGN KEY (userid) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+      FOREIGN KEY (treeid) REFERENCES trees(id) ON DELETE CASCADE ON UPDATE CASCADE
+    )`
+  ];
+
+  for (const tableSql of tables) {
+    await db.execute(tableSql);
+  }
+  
+  console.log('Database tables initialized');
+}
+
+initializeDatabase().catch(console.error);
 
 module.exports = db;
+
+async function seedDatabase() {
+  // Check if users exist
+  const users = await db.execute("SELECT * FROM users");
+  if (users.rows.length === 0) {
+    // Insert sample data
+    await db.execute({
+      sql: "INSERT INTO users (role, nickname, login, password) VALUES (?, ?, ?, ?)",
+      args: [0, 'exampleUser', 'epicgamer', '123']
+    });
+    
+    await db.execute({
+      sql: "INSERT INTO trees (name, description, picturepath) VALUES (?, ?, ?)",
+      args: ['oak', 'this is one cool tree ain\'t it partn\'', 'image.png']
+    });
+    
+    await db.execute({
+      sql: "INSERT INTO comments (content, userid, treeid) VALUES (?, ?, ?)",
+      args: ['loremipsum', 0, 0]
+    });
+    
+    console.log('Sample data seeded');
+  }
+}
+
+seedDatabase().catch(console.error);
