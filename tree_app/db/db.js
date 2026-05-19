@@ -5,21 +5,13 @@ const DATABASE_URL = process.env.TURSO_DATABASE_URL;
 const AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN;
 
 // Validate env vars
-if (!DATABASE_URL) {
-  throw new Error("Missing TURSO_DATABASE_URL");
+if (!DATABASE_URL || !AUTH_TOKEN) {
+  throw new Error("Missing TURSO_DATABASE_URL or TURSO_AUTH_TOKEN");
 }
 
-if (!AUTH_TOKEN) {
-  throw new Error("Missing TURSO_AUTH_TOKEN");
-}
-
-console.log("AUTH_TOKEN:", AUTH_TOKEN);
-console.log("DATABASE_URL:", DATABASE_URL);
-
-// Create Turso database connection
-const db = new sqlite3.Database(DATABASE_URL, {
-  authToken: AUTH_TOKEN,
-});
+// FIX: Append the token to the URL as a query parameter
+const connectionString = `${DATABASE_URL}?authToken=${AUTH_TOKEN}`;
+const db = new sqlite3.Database(connectionString);
 
 console.log("Connected to Turso database using @libsql/sqlite3");
 
