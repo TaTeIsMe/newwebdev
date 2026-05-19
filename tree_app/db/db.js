@@ -48,10 +48,10 @@ db.serialize(() => {
       content TEXT NOT NULL,
       userid INTEGER NOT NULL,
       treeid INTEGER,
-      FOREIGN KEY (userid) REFERENCES users(id)
+      FOREIGN KEY (user_id) REFERENCES users(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
-      FOREIGN KEY (treeid) REFERENCES trees(id)
+      FOREIGN KEY (tree_id) REFERENCES trees(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
     )
