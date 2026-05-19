@@ -8,9 +8,8 @@ const { TreeSchema, CommentSchema } = require('../schemas/schemas')
 const treeRouter = express.Router()
 
 
-import multer from 'multer';
-import multerS3 from 'multer-s3';
-import { S3Client } from '@aws-sdk/client-s3';
+const multerS3 = require('multer-s3');
+const { S3Client } = require('@aws-sdk/client-s3');
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
