@@ -67,7 +67,7 @@ function Tree({user}) {
                 <div className="tree-title">{tree.name} {user && user.role === 0 && <button className="delete-button" onClick={()=>navigate(`/trees/${tree.id}/edit`)}> edit </button>}</div>
                 <img
                     className="tree-img"
-                    src={baseUrl + tree.picture_path}
+                    src={tree.picture_path}
                     alt={tree.name}
                 />
                 <div className="tree-desc">{tree.description}</div>
