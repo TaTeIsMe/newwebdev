@@ -5,7 +5,10 @@ const DATABASE_URL = process.env.TURSO_DATABASE_URL;
 const AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN;
 
 // Create database connection - works just like sqlite3
-const db = new sqlite3.Database(DATABASE_URL, { authToken: AUTH_TOKEN });
+const db = new sqlite3.Database(
+  process.env.TURSO_DATABASE_URL,
+  process.env.TURSO_AUTH_TOKEN
+);
 
 console.log('Connected to Turso database using @libsql/sqlite3');
 
