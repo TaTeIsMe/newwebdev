@@ -79,7 +79,7 @@ db.serialize(() => {
       });
 
       db.run(`
-        INSERT INTO trees (name, description, picture_path)
+        INSERT INTO trees (name, description, picturepath)
         VALUES (?, ?, ?)
       `, ["oak", "this is one cool tree ain't it partner", "image.png"], (err) => {
         if (err) console.error("Error seeding tree:", err);
